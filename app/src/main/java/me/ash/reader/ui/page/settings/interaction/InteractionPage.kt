@@ -32,6 +32,7 @@ import me.ash.reader.infrastructure.preference.LocalMarkAsReadOnScroll
 import me.ash.reader.infrastructure.preference.LocalOpenLink
 import me.ash.reader.infrastructure.preference.LocalOpenLinkSpecificBrowser
 import me.ash.reader.infrastructure.preference.LocalPullToSwitchArticle
+import me.ash.reader.infrastructure.preference.LocalEbookMode
 import me.ash.reader.infrastructure.preference.LocalSettings
 import me.ash.reader.infrastructure.preference.LocalSharedContent
 import me.ash.reader.infrastructure.preference.LocalSortUnreadArticles
@@ -65,6 +66,7 @@ fun InteractionPage(
     val hideEmptyGroups = LocalHideEmptyGroups.current
     val sortUnreadArticles = LocalSortUnreadArticles.current
     val pullToSwitchArticle = LocalPullToSwitchArticle.current
+    val ebookMode = LocalEbookMode.current
     val openLink = LocalOpenLink.current
     val openLinkSpecificBrowser = LocalOpenLinkSpecificBrowser.current
     val sharedContent = LocalSharedContent.current
@@ -196,6 +198,14 @@ fun InteractionPage(
                         onClick = { pullToSwitchArticle.toggle(context, scope) }) {
                         RYSwitch(activated = pullToSwitchArticle.value) {
                             pullToSwitchArticle.toggle(context, scope)
+                        }
+                    }
+                    SettingItem(
+                        title = stringResource(id = R.string.ebook_mode),
+                        desc = stringResource(id = R.string.ebook_mode_desc),
+                        onClick = { ebookMode.toggle(context, scope) }) {
+                        RYSwitch(activated = ebookMode.value) {
+                            ebookMode.toggle(context, scope)
                         }
                     }
                     Spacer(modifier = Modifier.height(24.dp))

@@ -83,6 +83,7 @@ fun Preferences.toSettings(): Settings {
         hideEmptyGroups = HideEmptyGroupsPreference.fromPreferences(this),
         pullToSwitchFeed = PullToLoadNextFeedPreference.fromPreference(this),
         pullToSwitchArticle = PullToSwitchArticlePreference.fromPreference(this),
+        ebookMode = EbookModePreference.fromPreference(this),
         openLink = OpenLinkPreference.fromPreferences(this),
         openLinkSpecificBrowser = OpenLinkSpecificBrowserPreference.fromPreferences(this),
         sharedContent = SharedContentPreference.fromPreferences(this),

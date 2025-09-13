@@ -40,6 +40,9 @@ fun RYWebView(
     content: String,
     refererDomain: String? = null,
     onImageClick: ((imgUrl: String, altText: String) -> Unit)? = null,
+    isEbookModeEnabled: Boolean = false,
+    onPageUp: (() -> Unit)? = null,
+    onPageDown: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp.value
@@ -81,7 +84,10 @@ fun RYWebView(
                         context.openURL(url, openLink, openLinkSpecificBrowser)
                     }
                 ),
-                onImageClick = onImageClick
+                onImageClick = onImageClick,
+                isEbookModeEnabled = isEbookModeEnabled,
+                onPageUp = onPageUp,
+                onPageDown = onPageDown
             )
         )
     }
@@ -126,7 +132,7 @@ fun RYWebView(
                         ),
                         url,
                         content,
-                        WebViewScript.get(boldCharacters.value),
+                        WebViewScript.get(boldCharacters.value, isEbookModeEnabled),
                     ),
                     "text/HTML",
                     "UTF-8", null

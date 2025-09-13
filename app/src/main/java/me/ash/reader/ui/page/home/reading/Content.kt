@@ -48,6 +48,9 @@ fun Content(
     isLoading: Boolean,
     contentPadding: PaddingValues = PaddingValues(),
     onImageClick: ((imgUrl: String, altText: String) -> Unit)? = null,
+    isEbookModeEnabled: Boolean = false,
+    onPageUp: (() -> Unit)? = null,
+    onPageDown: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val subheadUpperCase = LocalReadingSubheadUpperCase.current
@@ -97,6 +100,9 @@ fun Content(
                                 content = content,
                                 refererDomain = link.extractDomain(),
                                 onImageClick = onImageClick,
+                                isEbookModeEnabled = isEbookModeEnabled,
+                                onPageUp = onPageUp,
+                                onPageDown = onPageDown,
                             )
                             Spacer(modifier = Modifier.height(128.dp))
                             Spacer(

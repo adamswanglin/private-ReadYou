@@ -2,7 +2,7 @@ package me.ash.reader.ui.component.webview
 
 object WebViewScript {
 
-    fun get(boldCharacters: Boolean) = """
+    fun get(boldCharacters: Boolean, isEbookModeEnabled: Boolean = false) = """
 const BR_WORD_STEM_PERCENTAGE = 0.7;
 const MAX_FIXATION_PARTS = 4;
 const FIXATION_LOWER_BOUND = 0
@@ -92,5 +92,56 @@ images.forEach(function(img) {
         console.error("Failed to load image:", img.src);
     };
 });
+
+${if (isEbookModeEnabled) """
+// 电子书模式：左右点击翻页
+var lastClickTime = 0;
+var clickThrottle = 300; // 300ms防抖
+
+// 监听整个文档的点击事件，包括空白区域
+document.addEventListener('click', function(event) {
+    var currentTime = Date.now();
+    if (currentTime - lastClickTime < clickThrottle) {
+        return; // 忽略过于频繁的点击
+    }
+    // 检查是否点击的是链接或图片
+    var target = event.target;
+    var isLink = target.tagName === 'A' || target.closest('a');
+    var isImage = target.tagName === 'IMG';
+    
+    if (isLink || isImage) {
+        return; // 让链接和图片的默认行为执行
+    }
+    
+    // 获取点击位置
+    var clickX = event.clientX;
+    var screenWidth = window.innerWidth;
+    var leftThird = screenWidth * 0.33;
+    var rightThird = screenWidth * 0.67;
+    
+    if (clickX < leftThird) {
+        // 点击左侧区域，向上翻页
+        lastClickTime = currentTime;
+        if (typeof JavaScriptInterface !== 'undefined') {
+            JavaScriptInterface.onPageUp();
+        }
+        event.preventDefault();
+        event.stopPropagation();
+    } else if (clickX > rightThird) {
+        // 点击右侧区域，向下翻页
+        lastClickTime = currentTime;
+        if (typeof JavaScriptInterface !== 'undefined') {
+            JavaScriptInterface.onPageDown();
+        }
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    // 中间区域不做处理，保持默认行为
+}, true);
+
+// 确保body元素有足够的高度来接收点击事件
+document.body.style.minHeight = '100vh';
+document.documentElement.style.minHeight = '100vh';
+""" else ""}
 """
 }

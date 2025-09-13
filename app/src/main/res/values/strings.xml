@@ -320,6 +320,8 @@
     <string name="line_height_multiple">Line height multiple</string>
     <string name="export">Export</string>
     <string name="pull_to_switch_article">Pull to switch article</string>
+    <string name="ebook_mode">E-book mode</string>
+    <string name="ebook_mode_desc">Tap left/right side of screen to turn pages</string>
     <string name="mark_above_as_read">Mark above as read</string>
     <string name="mark_below_as_read">Mark below as read</string>
     <string name="save">Save</string>

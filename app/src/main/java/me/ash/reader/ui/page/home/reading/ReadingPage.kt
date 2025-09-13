@@ -33,10 +33,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
@@ -44,6 +47,7 @@ import kotlinx.coroutines.launch
 import me.ash.reader.R
 import me.ash.reader.infrastructure.android.TextToSpeechManager
 import me.ash.reader.infrastructure.preference.LocalPullToSwitchArticle
+import me.ash.reader.infrastructure.preference.LocalEbookMode
 import me.ash.reader.infrastructure.preference.LocalReadingAutoHideToolbar
 import me.ash.reader.infrastructure.preference.LocalReadingBoldCharacters
 import me.ash.reader.infrastructure.preference.LocalReadingTextLineHeight
@@ -70,7 +74,10 @@ fun ReadingPage(
 ) {
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
     val isPullToSwitchArticleEnabled = LocalPullToSwitchArticle.current.value
+    val isEbookModeEnabled = LocalEbookMode.current.value
     val readingUiState = viewModel.readingUiState.collectAsStateValue()
     val readerState = viewModel.readerStateStateFlow.collectAsStateValue()
     val boldCharacters = LocalReadingBoldCharacters.current
@@ -265,6 +272,31 @@ fun ReadingPage(
                                             onImageClick = { imgUrl, altText ->
                                                 currentImageData = ImageData(imgUrl, altText)
                                                 showFullScreenImageViewer = true
+                                            },
+                                            isEbookModeEnabled = isEbookModeEnabled,
+                                            onPageUp = {
+                                                // 向上翻页 - 按屏幕高度向上滚动
+                                                scope.launch {
+                                                    val screenHeightPx = with(density) { 
+                                                        configuration.screenHeightDp.dp.toPx().toInt() 
+                                                    }
+                                                    val pageHeight = (screenHeightPx * 0.8f).toInt() // 80%的屏幕高度作为一页
+                                                    val currentValue = scrollState.value
+                                                    val newValue = (currentValue - pageHeight).coerceAtLeast(0)
+                                                    scrollState.scrollTo(newValue)
+                                                }
+                                            },
+                                            onPageDown = {
+                                                // 向下翻页 - 按屏幕高度向下滚动
+                                                scope.launch {
+                                                    val screenHeightPx = with(density) { 
+                                                        configuration.screenHeightDp.dp.toPx().toInt() 
+                                                    }
+                                                    val pageHeight = (screenHeightPx * 0.8f).toInt() // 80%的屏幕高度作为一页
+                                                    val currentValue = scrollState.value
+                                                    val newValue = (currentValue + pageHeight).coerceAtMost(scrollState.maxValue)
+                                                    scrollState.scrollTo(newValue)
+                                                }
                                             },
                                         )
                                         PullToLoadIndicator(

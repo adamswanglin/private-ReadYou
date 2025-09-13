@@ -16,6 +16,9 @@ object WebViewLayout {
         readingFontsPreference: ReadingFontsPreference,
         webViewClient: WebViewClient,
         onImageClick: ((imgUrl: String, altText: String) -> Unit)? = null,
+        isEbookModeEnabled: Boolean = false,
+        onPageUp: (() -> Unit)? = null,
+        onPageDown: (() -> Unit)? = null,
     ) = WebView(context).apply {
         this.webViewClient = webViewClient
         scrollBarSize = 0
@@ -44,6 +47,20 @@ object WebViewLayout {
                 override fun onImgTagClick(imgUrl: String?, alt: String?) {
                     if (onImageClick != null && imgUrl != null) {
                         onImageClick.invoke(imgUrl, alt ?: "")
+                    }
+                }
+                
+                @JavascriptInterface
+                override fun onPageUp() {
+                    if (isEbookModeEnabled && onPageUp != null) {
+                        onPageUp.invoke()
+                    }
+                }
+                
+                @JavascriptInterface
+                override fun onPageDown() {
+                    if (isEbookModeEnabled && onPageDown != null) {
+                        onPageDown.invoke()
                     }
                 }
             }, JavaScriptInterface.NAME)

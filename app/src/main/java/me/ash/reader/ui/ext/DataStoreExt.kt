@@ -194,6 +194,7 @@ sealed interface PreferencesKey {
         const val hideEmptyGroups = "hideEmptyGroups"
         const val pullToLoadNextFeed = "pullToLoadNextFeed"
         const val pullToSwitchArticle = "pullToSwitchArticle"
+        const val ebookMode = "ebookMode"
         const val openLink = "openLink"
         const val openLinkAppSpecificBrowser = "openLinkAppSpecificBrowser"
         const val sharedContent = "sharedContent"
@@ -270,6 +271,7 @@ sealed interface PreferencesKey {
                 BooleanKey(hideEmptyGroups),
                 BooleanKey(pullToLoadNextFeed),
                 BooleanKey(pullToSwitchArticle),
+                BooleanKey(ebookMode),
                 IntKey(openLink),
                 StringKey(openLinkAppSpecificBrowser),
                 IntKey(sharedContent),
@@ -356,6 +358,7 @@ data class DataStoreKey<T>(val key: Preferences.Key<T>, val type: Class<T>) {
         const val hideEmptyGroups = "hideEmptyGroups"
         const val pullToLoadNextFeed = "pullToLoadNextFeed"
         const val pullToSwitchArticle = "pullToSwitchArticle"
+        const val ebookMode = "ebookMode"
         const val openLink = "openLink"
         const val openLinkAppSpecificBrowser = "openLinkAppSpecificBrowser"
         const val sharedContent = "sharedContent"
@@ -504,6 +507,8 @@ data class DataStoreKey<T>(val key: Preferences.Key<T>, val type: Class<T>) {
                     DataStoreKey(booleanPreferencesKey(pullToLoadNextFeed), Boolean::class.java),
                 pullToSwitchArticle to
                     DataStoreKey(booleanPreferencesKey(pullToSwitchArticle), Boolean::class.java),
+                ebookMode to
+                    DataStoreKey(booleanPreferencesKey(ebookMode), Boolean::class.java),
                 openLink to DataStoreKey(intPreferencesKey(openLink), Int::class.java),
                 openLinkAppSpecificBrowser to
                     DataStoreKey(
