@@ -50,7 +50,9 @@ import me.ash.reader.infrastructure.preference.LocalPullToSwitchArticle
 import me.ash.reader.infrastructure.preference.LocalEbookMode
 import me.ash.reader.infrastructure.preference.LocalReadingAutoHideToolbar
 import me.ash.reader.infrastructure.preference.LocalReadingBoldCharacters
+import me.ash.reader.infrastructure.preference.LocalReadingRenderer
 import me.ash.reader.infrastructure.preference.LocalReadingTextLineHeight
+import me.ash.reader.infrastructure.preference.ReadingRendererPreference
 import me.ash.reader.infrastructure.preference.not
 import me.ash.reader.ui.ext.collectAsStateValue
 import me.ash.reader.ui.ext.showToast
@@ -78,6 +80,7 @@ fun ReadingPage(
     val density = LocalDensity.current
     val isPullToSwitchArticleEnabled = LocalPullToSwitchArticle.current.value
     val isEbookModeEnabled = LocalEbookMode.current.value
+    val readingRenderer = LocalReadingRenderer.current
     val readingUiState = viewModel.readingUiState.collectAsStateValue()
     val readerState = viewModel.readerStateStateFlow.collectAsStateValue()
     val boldCharacters = LocalReadingBoldCharacters.current
@@ -104,6 +107,7 @@ fun ReadingPage(
     //    }
 
     var bringToTop by remember { mutableStateOf(false) }
+    var isPageTurning by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -275,27 +279,98 @@ fun ReadingPage(
                                             },
                                             isEbookModeEnabled = isEbookModeEnabled,
                                             onPageUp = {
-                                                // 向上翻页 - 按屏幕高度向上滚动
-                                                scope.launch {
-                                                    val screenHeightPx = with(density) { 
-                                                        configuration.screenHeightDp.dp.toPx().toInt() 
+                                                // 向上翻页 - 根据渲染器类型选择翻页方式
+                                                if (!isPageTurning) {
+                                                    isPageTurning = true
+                                                    scope.launch {
+                                                    when (readingRenderer) {
+                                                        ReadingRendererPreference.WebView -> {
+                                                            // WebView使用scrollState
+                                                            val screenHeightPx = with(density) { 
+                                                                configuration.screenHeightDp.dp.toPx().toInt() 
+                                                            }
+                                                            val pageHeight = (screenHeightPx * 0.8f).toInt()
+                                                            val currentValue = scrollState.value
+                                                            val newValue = (currentValue - pageHeight).coerceAtLeast(0)
+                                                            scrollState.scrollTo(newValue)
+                                                        }
+                                                        ReadingRendererPreference.NativeComponent -> {
+                                                            // Native Component使用listState按项目翻页
+                                                            val layoutInfo = listState.layoutInfo
+                                                            val visibleItems = layoutInfo.visibleItemsInfo
+                                                            if (visibleItems.isNotEmpty()) {
+                                                                val screenHeight = layoutInfo.viewportSize.height
+                                                                val firstVisibleItem = visibleItems.first()
+                                                                val currentOffset = firstVisibleItem.offset
+                                                                val newOffset = currentOffset - (screenHeight * 0.8f).toInt()
+                                                                
+                                                                if (newOffset <= 0 && firstVisibleItem.index > 0) {
+                                                                    // 如果已经在顶部，跳到上一个item
+                                                                    listState.scrollToItem(
+                                                                        (firstVisibleItem.index - 1).coerceAtLeast(0)
+                                                                    )
+                                                                } else {
+                                                                    // 在当前item内翻页
+                                                                    listState.scrollToItem(
+                                                                        firstVisibleItem.index,
+                                                                        newOffset.coerceAtLeast(0)
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
                                                     }
-                                                    val pageHeight = (screenHeightPx * 0.8f).toInt() // 80%的屏幕高度作为一页
-                                                    val currentValue = scrollState.value
-                                                    val newValue = (currentValue - pageHeight).coerceAtLeast(0)
-                                                    scrollState.scrollTo(newValue)
+                                                }.invokeOnCompletion { 
+                                                    isPageTurning = false 
+                                                }
                                                 }
                                             },
                                             onPageDown = {
-                                                // 向下翻页 - 按屏幕高度向下滚动
-                                                scope.launch {
-                                                    val screenHeightPx = with(density) { 
-                                                        configuration.screenHeightDp.dp.toPx().toInt() 
+                                                // 向下翻页 - 根据渲染器类型选择翻页方式
+                                                if (!isPageTurning) {
+                                                    isPageTurning = true
+                                                    scope.launch {
+                                                    when (readingRenderer) {
+                                                        ReadingRendererPreference.WebView -> {
+                                                            // WebView使用scrollState
+                                                            val screenHeightPx = with(density) { 
+                                                                configuration.screenHeightDp.dp.toPx().toInt() 
+                                                            }
+                                                            val pageHeight = (screenHeightPx * 0.8f).toInt()
+                                                            val currentValue = scrollState.value
+                                                            val newValue = (currentValue + pageHeight).coerceAtMost(scrollState.maxValue)
+                                                            scrollState.scrollTo(newValue)
+                                                        }
+                                                        ReadingRendererPreference.NativeComponent -> {
+                                                            // Native Component使用listState按项目翻页
+                                                            val layoutInfo = listState.layoutInfo
+                                                            val visibleItems = layoutInfo.visibleItemsInfo
+                                                            if (visibleItems.isNotEmpty()) {
+                                                                val screenHeight = layoutInfo.viewportSize.height
+                                                                val lastVisibleItem = visibleItems.last()
+                                                                val currentOffset = lastVisibleItem.offset
+                                                                val itemBottom = currentOffset + lastVisibleItem.size
+                                                                val viewportBottom = layoutInfo.viewportEndOffset
+                                                                
+                                                                if (itemBottom <= viewportBottom && lastVisibleItem.index < layoutInfo.totalItemsCount - 1) {
+                                                                    // 如果当前item完全可见，跳到下一个item
+                                                                    listState.scrollToItem(
+                                                                        (lastVisibleItem.index + 1).coerceAtMost(layoutInfo.totalItemsCount - 1)
+                                                                    )
+                                                                } else {
+                                                                    // 在当前item内翻页
+                                                                    val firstVisibleItem = visibleItems.first()
+                                                                    val newOffset = firstVisibleItem.offset + (screenHeight * 0.8f).toInt()
+                                                                    listState.scrollToItem(
+                                                                        firstVisibleItem.index,
+                                                                        newOffset
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
                                                     }
-                                                    val pageHeight = (screenHeightPx * 0.8f).toInt() // 80%的屏幕高度作为一页
-                                                    val currentValue = scrollState.value
-                                                    val newValue = (currentValue + pageHeight).coerceAtMost(scrollState.maxValue)
-                                                    scrollState.scrollTo(newValue)
+                                                }.invokeOnCompletion { 
+                                                    isPageTurning = false 
+                                                }
                                                 }
                                             },
                                         )

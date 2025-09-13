@@ -1,6 +1,10 @@
 package me.ash.reader.ui.page.home.reading
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -17,9 +21,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import java.util.Date
@@ -53,12 +62,33 @@ fun Content(
     onPageDown: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
     val subheadUpperCase = LocalReadingSubheadUpperCase.current
     val renderer = LocalReadingRenderer.current
 
     val textContentWidth = LocalTextContentWidth.current
     val maxWidthModifier = Modifier.widthIn(max = textContentWidth)
     val uriHandler = LocalUriHandler.current
+    
+    // 创建点击检测修饰符
+    val clickModifier = if (isEbookModeEnabled) {
+        Modifier.pointerInput(Unit) {
+            detectTapGestures { offset ->
+                val screenWidth = with(density) { configuration.screenWidthDp.dp.toPx() }
+                val leftThird = screenWidth * 0.33f
+                val rightThird = screenWidth * 0.67f
+                
+                when {
+                    offset.x < leftThird -> onPageUp?.invoke()
+                    offset.x > rightThird -> onPageDown?.invoke()
+                    // 中间区域不处理
+                }
+            }
+        }
+    } else {
+        Modifier
+    }
 
     val headline =
         @Composable {
@@ -84,6 +114,7 @@ fun Content(
                 Column(
                     modifier =
                         modifier.padding(top = contentPadding.calculateTopPadding()).fillMaxSize()
+                            .then(clickModifier)
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
@@ -116,7 +147,8 @@ fun Content(
             ReadingRendererPreference.NativeComponent -> {
                 SelectionContainer {
                     LazyColumn(
-                        modifier = modifier.fillMaxSize().drawVerticalScrollbar(listState),
+                        modifier = modifier.fillMaxSize().drawVerticalScrollbar(listState)
+                            .then(clickModifier),
                         state = listState,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {

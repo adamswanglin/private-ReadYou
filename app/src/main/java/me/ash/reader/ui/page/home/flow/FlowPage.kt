@@ -12,6 +12,7 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -52,7 +53,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -70,6 +74,7 @@ import me.ash.reader.R
 import me.ash.reader.domain.data.PagerData
 import me.ash.reader.domain.model.article.ArticleFlowItem
 import me.ash.reader.domain.model.article.ArticleWithFeed
+import me.ash.reader.infrastructure.preference.LocalEbookMode
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListDateStickyHeader
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListFeedIcon
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListTonalElevation
@@ -116,6 +121,9 @@ fun FlowPage(
     navigateToArticle: (String, Int) -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
+    val isEbookModeEnabled = LocalEbookMode.current.value
     val articleListTonalElevation = LocalFlowArticleListTonalElevation.current
     val articleListFeedIcon = LocalFlowArticleListFeedIcon.current
     val articleListDateStickyHeader = LocalFlowArticleListDateStickyHeader.current
@@ -644,10 +652,67 @@ fun FlowPage(
                                         },
                                     )
                                     .nestedScroll(scrollBehavior.nestedScrollConnection)
-                                    .fillMaxSize(),
+                                    .fillMaxSize()
+                                    .let { modifier ->
+                                        if (isEbookModeEnabled) {
+                                            modifier.pointerInput(Unit) {
+                                                detectTapGestures { offset ->
+                                                    val screenWidth = with(density) { configuration.screenWidthDp.dp.toPx() }
+                                                    val leftThird = screenWidth * 0.33f
+                                                    val rightThird = screenWidth * 0.67f
+                                                    
+                                                    when {
+                                                        offset.x < leftThird -> {
+                                                            // 向上翻页
+                                                            scope.launch {
+                                                                val layoutInfo = listState.layoutInfo
+                                                                val visibleItems = layoutInfo.visibleItemsInfo
+                                                                if (visibleItems.isNotEmpty()) {
+                                                                    val screenHeight = layoutInfo.viewportSize.height
+                                                                    val firstVisibleItem = visibleItems.first()
+                                                                    val currentOffset = firstVisibleItem.offset
+                                                                    val newOffset = currentOffset - (screenHeight * 0.8f).toInt()
+                                                                    
+                                                                    if (newOffset <= 0 && firstVisibleItem.index > 0) {
+                                                                        listState.scrollToItem((firstVisibleItem.index - 1).coerceAtLeast(0))
+                                                                    } else {
+                                                                        listState.scrollToItem(firstVisibleItem.index, newOffset.coerceAtLeast(0))
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        offset.x > rightThird -> {
+                                                            // 向下翻页
+                                                            scope.launch {
+                                                                val layoutInfo = listState.layoutInfo
+                                                                val visibleItems = layoutInfo.visibleItemsInfo
+                                                                if (visibleItems.isNotEmpty()) {
+                                                                    val screenHeight = layoutInfo.viewportSize.height
+                                                                    val lastVisibleItem = visibleItems.last()
+                                                                    val currentOffset = lastVisibleItem.offset
+                                                                    val itemBottom = currentOffset + lastVisibleItem.size
+                                                                    val viewportBottom = layoutInfo.viewportEndOffset
+                                                                    
+                                                                    if (itemBottom <= viewportBottom && lastVisibleItem.index < layoutInfo.totalItemsCount - 1) {
+                                                                        listState.scrollToItem((lastVisibleItem.index + 1).coerceAtMost(layoutInfo.totalItemsCount - 1))
+                                                                    } else {
+                                                                        val firstVisibleItem = visibleItems.first()
+                                                                        val newOffset = firstVisibleItem.offset + (screenHeight * 0.8f).toInt()
+                                                                        listState.scrollToItem(firstVisibleItem.index, newOffset)
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            modifier
+                                        }
+                                    },
                             state = listState,
                         ) {
-                            ArticleList(
+                            ArticleList( 
                                 pagingItems = pagingItems,
                                 diffMap = viewModel.diffMapHolder.diffMap,
                                 isShowFeedIcon = articleListFeedIcon.value,
