@@ -36,6 +36,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.ash.reader.infrastructure.preference.*
@@ -87,6 +89,9 @@ fun bodyStyle(): TextStyle =
         letterSpacing = LocalReadingTextLetterSpacing.current.sp,
         color = bodyForeground(),
         textAlign = LocalReadingTextAlign.current.toTextAlign(),
+        // 改善文本渲染质量
+        hyphens = Hyphens.Auto,
+        lineBreak = LineBreak.Paragraph,
     )
 
 @Stable
@@ -100,6 +105,9 @@ fun h1Style(): TextStyle =
         letterSpacing = 0.sp,
         color = onSurfaceColor(),
         textAlign = LocalReadingSubheadAlign.current.toTextAlign(),
+        // 改善标题文本渲染质量
+        hyphens = Hyphens.Auto,
+        lineBreak = LineBreak.Heading,
     )
 
 @Stable

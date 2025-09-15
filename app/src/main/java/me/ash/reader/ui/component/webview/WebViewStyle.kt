@@ -92,12 +92,20 @@ article {
     font-size: var(--font-size) !important;
     font-weight: var(--text-bold) !important;
     color: var(--text-color) !important;
+    /* 字体抗锯齿设置 */
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
 }
 
 /* Page  */
 body {
     margin: 0;
-    padding 0;
+    padding: 0;
+    /* 全局字体抗锯齿设置 */
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
 }
 
 ::selection {
@@ -118,6 +126,10 @@ h6 {
     letter-spacing: var(--letter-spacing) !important;
     color: var(--bold-text-color) !important;
     text-align: var(--text-align) !important;
+    /* 标题字体抗锯齿 */
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
 }
 
 /* Paragraph */
@@ -128,6 +140,10 @@ p {
     line-height: var(--line-height) !important;
     letter-spacing: var(--letter-spacing) !important;
     text-align: var(--text-align) !important;
+    /* 段落字体抗锯齿 */
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
 }
 
 span {

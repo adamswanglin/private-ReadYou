@@ -65,6 +65,8 @@ object WebViewLayout {
                 }
             }, JavaScriptInterface.NAME)
             setSupportZoom(false)
+            // 启用字体抗锯齿
+            textZoom = 100
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                 isAlgorithmicDarkeningAllowed = true
             }

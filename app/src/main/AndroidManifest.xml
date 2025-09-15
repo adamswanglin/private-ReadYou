@@ -29,7 +29,7 @@
             <action android:name="android.intent.action.TRANSLATE" />
         </intent>
     </queries>
-
+    <uses-feature android:name="android.hardware.screen.monochrome" />
     <application
         android:name=".infrastructure.android.AndroidApp"
         android:allowBackup="true"
@@ -40,6 +40,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Reader"
         android:usesCleartextTraffic="true">
+        android:antialias="true"
         <activity
             android:name=".ui.widget.WidgetConfigActivity"
             android:exported="false"
