@@ -61,6 +61,8 @@ class WebViewClient(
     override fun onPageFinished(view: WebView?, url: String?) {
         super.onPageFinished(view, url)
         view!!.evaluateJavascript(OnImgClickScript, null)
+        // 注入墨水屏优化CSS
+        view.evaluateJavascript(EinkOptimizationScript, null)
     }
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
@@ -93,6 +95,38 @@ class WebViewClient(
                         event.preventDefault();
                         window.${JavaScriptInterface.NAME}.onImgTagClick(this.src, this.alt);
                     }
+                }
+            })()
+            """
+        
+        private const val EinkOptimizationScript = """
+            javascript:(function() {
+                var style = document.createElement('style');
+                style.id = 'eink-optimization';
+                style.innerHTML = `
+                    body *, article *, p *, h1 *, h2 *, h3 *, h4 *, h5 *, h6 * { 
+                        -webkit-font-smoothing: none !important;
+                        -moz-osx-font-smoothing: none !important;
+                        text-rendering: optimizeSpeed !important;
+                        text-shadow: 0.3px 0.3px 0 currentColor !important;
+                        font-weight: 500 !important;
+                        /* 墨水屏软件渲染：禁用硬件加速相关属性 */
+                        backface-visibility: initial !important;
+                        transform: none !important;
+                        will-change: auto !important;
+                    }
+                    img { 
+                        filter: grayscale(100%) contrast(150%);
+                        image-rendering: -webkit-optimize-contrast;
+                        /* 确保图片也不触发硬件加速 */
+                        backface-visibility: initial !important;
+                        transform: none !important;
+                    }
+                `;
+                // 检查是否已经添加过样式，避免重复
+                var existingStyle = document.getElementById('eink-optimization');
+                if (!existingStyle) {
+                    document.head.appendChild(style);
                 }
             })()
             """

@@ -39,6 +39,7 @@ object WebViewStyle {
         tableMargin: Int,
         selectionTextColor: Int,
         selectionBgColor: Int,
+        einkTextShadowStrength: Float = 0.3f, // 墨水屏文本阴影强度，可调整0.0-1.0
     ): String = """
 ${applyFontFace(fontPath)}
 :root {
@@ -80,6 +81,12 @@ ${applyFontFace(fontPath)}
     --code-font-family: Menlo, Monospace, 'Courier New';
     --code-font-size: 0.9em;
     --pre-color;
+    
+    /* 墨水屏优化变量 - 禁用抗锯齿 */
+    --eink-font-smoothing: none;
+    --eink-text-rendering: optimizeSpeed; /* 优先速度和锐利，牺牲少量字形优化 */
+    --eink-font-features: "kern" 1, "liga" 1, "calt" 1;
+    --eink-text-shadow: ${einkTextShadowStrength}px ${einkTextShadowStrength}px 0;
 }
 
 article {
@@ -92,20 +99,34 @@ article {
     font-size: var(--font-size) !important;
     font-weight: var(--text-bold) !important;
     color: var(--text-color) !important;
-    /* 字体抗锯齿设置 */
-    -webkit-font-smoothing: antialiased !important;
-    -moz-osx-font-smoothing: grayscale !important;
-    text-rendering: optimizeLegibility !important;
+    /* 墨水屏优化的字体渲染设置 - 禁用抗锯齿 */
+    -webkit-font-smoothing: none !important; /* 禁用WebKit抗锯齿 */
+    -moz-osx-font-smoothing: none !important; /* 禁用Firefox抗锯齿 */
+    text-rendering: optimizeSpeed !important; /* 快速渲染，锐利边缘 */
+    image-rendering: -webkit-optimize-contrast; /* 间接影响文本对比 */
+    font-smooth: never; /* 实验性：完全禁用平滑（Chrome支持） */
+    /* e-ink阴影：轻微偏移，增强粗细感 */
+    text-shadow: var(--eink-text-shadow) currentColor !important;
+    /* 提高文本清晰度 */
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1 !important;
+    font-optical-sizing: auto !important;
 }
 
 /* Page  */
 body {
     margin: 0;
     padding: 0;
-    /* 全局字体抗锯齿设置 */
-    -webkit-font-smoothing: antialiased !important;
-    -moz-osx-font-smoothing: grayscale !important;
-    text-rendering: optimizeLegibility !important;
+    /* 墨水屏优化的全局字体渲染设置 - 禁用抗锯齿 */
+    -webkit-font-smoothing: none !important; /* 禁用WebKit抗锯齿 */
+    -moz-osx-font-smoothing: none !important; /* 禁用Firefox抗锯齿 */
+    text-rendering: optimizeSpeed !important; /* 快速渲染，锐利边缘 */
+    image-rendering: pixelated; /* 像素级渲染，锐利但可能太硬 */
+    /* e-ink阴影：轻微偏移，增强粗细感 */
+    text-shadow: var(--eink-text-shadow) currentColor !important;
+    /* 确保清晰的字体显示 */
+    font-feature-settings: "kern" 1, "liga" 1 !important;
+    /* 墨水屏软件渲染优化 - 移除硬件加速相关属性 */
+    /* 注意：已移除 backface-visibility 和 transform: translateZ(0) 以避免与软件渲染冲突 */
 }
 
 ::selection {
@@ -126,10 +147,13 @@ h6 {
     letter-spacing: var(--letter-spacing) !important;
     color: var(--bold-text-color) !important;
     text-align: var(--text-align) !important;
-    /* 标题字体抗锯齿 */
-    -webkit-font-smoothing: antialiased !important;
-    -moz-osx-font-smoothing: grayscale !important;
-    text-rendering: optimizeLegibility !important;
+    /* 墨水屏优化的标题字体渲染 - 禁用抗锯齿 */
+    -webkit-font-smoothing: none !important; /* 禁用WebKit抗锯齿 */
+    -moz-osx-font-smoothing: none !important; /* 禁用Firefox抗锯齿 */
+    text-rendering: optimizeSpeed !important; /* 快速渲染，锐利边缘 */
+    /* e-ink阴影：轻微偏移，增强粗细感 */
+    text-shadow: var(--eink-text-shadow) currentColor !important;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1 !important;
 }
 
 /* Paragraph */
@@ -140,10 +164,13 @@ p {
     line-height: var(--line-height) !important;
     letter-spacing: var(--letter-spacing) !important;
     text-align: var(--text-align) !important;
-    /* 段落字体抗锯齿 */
-    -webkit-font-smoothing: antialiased !important;
-    -moz-osx-font-smoothing: grayscale !important;
-    text-rendering: optimizeLegibility !important;
+    /* 墨水屏优化的段落字体渲染 - 禁用抗锯齿 */
+    -webkit-font-smoothing: none !important; /* 禁用WebKit抗锯齿 */
+    -moz-osx-font-smoothing: none !important; /* 禁用Firefox抗锯齿 */
+    text-rendering: optimizeSpeed !important; /* 快速渲染，锐利边缘 */
+    /* e-ink阴影：轻微偏移，增强粗细感 */
+    text-shadow: var(--eink-text-shadow) currentColor !important;
+    font-feature-settings: "kern" 1, "liga" 1 !important;
 }
 
 span {

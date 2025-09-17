@@ -89,7 +89,7 @@ fun bodyStyle(): TextStyle =
         letterSpacing = LocalReadingTextLetterSpacing.current.sp,
         color = bodyForeground(),
         textAlign = LocalReadingTextAlign.current.toTextAlign(),
-        // 改善文本渲染质量
+        // 墨水屏优化的文本渲染设置
         hyphens = Hyphens.Auto,
         lineBreak = LineBreak.Paragraph,
     )
@@ -105,7 +105,7 @@ fun h1Style(): TextStyle =
         letterSpacing = 0.sp,
         color = onSurfaceColor(),
         textAlign = LocalReadingSubheadAlign.current.toTextAlign(),
-        // 改善标题文本渲染质量
+        // 墨水屏优化的标题文本渲染设置
         hyphens = Hyphens.Auto,
         lineBreak = LineBreak.Heading,
     )
